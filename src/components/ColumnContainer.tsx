@@ -3,6 +3,7 @@ import { Column, Task } from "../lib/types";
 import { useMemo } from "react";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { PlusIcon } from "../icons/PlusIcon";
 
 interface Props {
   column: Column;
@@ -49,6 +50,10 @@ export const ColumnContainter = ({ column, tasks }: Props) => {
           ))}
         </SortableContext>
       </div>
+      <button className='flex mt-1 gap-2 items-center p-3 bg-[#0d1117] border-columnBackgroundColor border-2 rounded-[0_0_5px_5px] border-x-columnBackgroundColor hover:bg-mainBackgroundColor hover:text-rose-500 active:bg-black'>
+        <PlusIcon />
+        Add task
+      </button>
     </div>
   );
 };
