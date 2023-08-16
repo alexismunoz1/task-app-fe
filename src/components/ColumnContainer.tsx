@@ -38,8 +38,8 @@ export const ColumnContainter = ({ column, tasks }: Props) => {
     <div
       ref={setNodeRef}
       style={style}
-      className='bg-columnBackgroundColor w-[350px] h-[500px] max-h-[500px] rounded-md flex flex-col border border-solid border-[rgba(108,108,108,0.3)]'>
-      <div className='flex font-bold text-lg bg-[#0d1117] p-3 rounded-[5px_5px_0_0]'>
+      className='bg-columnBackgroundColor w-[350px] h-[500px] max-h-[500px] rounded-md flex flex-col border border-solid border-[rgba(108,108,108,0.3)] p-1'>
+      <div className='flex font-bold text-lg bg-[#0d1117] p-3 rounded-[5px_5px_0_0] z-10 mb-1'>
         <p>{column.title}</p>
       </div>
       <div className='flex overflow-y-auto overflow-x-hidden flex-col grow gap-4 p-2'>
