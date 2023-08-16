@@ -12,14 +12,13 @@ interface Props {
 export const ColumnContainter = ({ column, tasks }: Props) => {
   const tasksIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
 
-  const { setNodeRef, attributes, listeners, transform, transition, isDragging } =
-    useSortable({
-      id: column.id,
-      data: {
-        type: "Column",
-        column,
-      },
-    });
+  const { setNodeRef, transform, transition, isDragging } = useSortable({
+    id: column.id,
+    data: {
+      type: "Column",
+      column,
+    },
+  });
 
   const style = {
     transition,

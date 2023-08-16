@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
+import { TaskCard } from "./TaskCard";
 
 interface Props {
   defaultCols: Column[];
@@ -142,6 +143,7 @@ export const KanbanBoard = ({ defaultCols, defaultTasks }: Props) => {
                 tasks={tasks.filter((task) => task.columnId === activeColumn.id)}
               />
             )}
+            {activeTask && <TaskCard task={activeTask} />}
           </DragOverlay>,
           document.body
         )}

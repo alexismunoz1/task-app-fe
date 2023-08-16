@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Task } from "../lib/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { TrashIcon } from "../icons/TrashIcon";
 
 interface Props {
   task: Task;
@@ -80,6 +81,11 @@ export const TaskCard = ({ task }: Props) => {
       <p className='my-auto h-[90%] w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap'>
         {task.content}
       </p>
+      {mouseIsOver && (
+        <button className='stroke-white absolute right-4 top-1/2 -translate-y-1/2 bg-columnBackgroundColor p-2 rounded opacity-60 hover:opacity-100'>
+          <TrashIcon />
+        </button>
+      )}
     </div>
   );
 };
