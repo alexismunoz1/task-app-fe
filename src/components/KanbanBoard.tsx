@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Column, Task } from "../lib/types";
 import { ColumnContainter } from "./ColumnContainer";
 import {
@@ -13,19 +13,38 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
-import { TaskCard } from "./TaskCard";
+import { TaskCard } from "./TaskCard/TaskCard";
+import { useGetTasks } from "../hooks/getTasks";
+import { useTaskStore } from "../store/taskStore";
 
-interface Props {
-  defaultCols: Column[];
-  defaultTasks: Task[];
-}
+const defaultCols: Column[] = [
+  {
+    id: "todo",
+    title: "Todo",
+  },
+  {
+    id: "doing",
+    title: "Work in progress",
+  },
+  {
+    id: "done",
+    title: "Done",
+  },
+];
 
-export const KanbanBoard = ({ defaultCols, defaultTasks }: Props) => {
+export const KanbanBoard = () => {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-  const [tasks, setTasks] = useState<Task[]>(defaultTasks);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+
+  const { data: initialTasks } = useGetTasks();
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  // const { task, setTasks } = useTaskStore();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [initialTasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -40,15 +59,10 @@ export const KanbanBoard = ({ defaultCols, defaultTasks }: Props) => {
     const column = event.active.data.current?.column;
     const task = event.active.data.current?.task;
 
-    if (type === "Column") {
-      setActiveColumn(column);
-      return;
-    }
+    if (type === "Column") setActiveColumn(column);
+    if (type === "Task") setActiveTask(task);
 
-    if (type === "Task") {
-      setActiveTask(task);
-      return;
-    }
+    return;
   }
 
   function onDragEnd(event: DragEndEvent) {
@@ -93,7 +107,6 @@ export const KanbanBoard = ({ defaultCols, defaultTasks }: Props) => {
         const overIndex = tasks.findIndex((t) => t.id === overId);
 
         if (tasks[activeIndex].columnId != tasks[overIndex].columnId) {
-          // Fix introduced after video recording
           tasks[activeIndex].columnId = tasks[overIndex].columnId;
           return arrayMove(tasks, activeIndex, overIndex - 1);
         }
@@ -108,28 +121,28 @@ export const KanbanBoard = ({ defaultCols, defaultTasks }: Props) => {
     if (isActiveATask && isOverAColumn) {
       setTasks((tasks) => {
         const activeIndex = tasks.findIndex((t) => t.id === activeId);
-
         tasks[activeIndex].columnId = overId;
-        console.log("DROPPING TASK OVER COLUMN", { activeIndex });
         return arrayMove(tasks, activeIndex, activeIndex);
       });
     }
   }
 
   return (
-    <div className='m-auto flex min-h-screen w-full items-center px-[40px]'>
+    <div className='m-auto flex min-h-screen w-full items-center'>
       <DndContext
         sensors={sensors}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onDragOver={onDragOver}>
-        <div className='flex gap-4'>
+        <div className='flex gap-6'>
           <SortableContext items={columnsId}>
-            {defaultCols.map((col) => (
+            {defaultCols.map((column) => (
               <ColumnContainter
-                key={col.id}
-                column={col}
-                tasks={tasks.filter((task) => task.columnId === col.id)}
+                key={column.id}
+                column={column}
+                tasks={
+                  tasks ? tasks.filter(({ columnId }) => columnId === column.id) : []
+                }
               />
             ))}
           </SortableContext>
@@ -140,7 +153,7 @@ export const KanbanBoard = ({ defaultCols, defaultTasks }: Props) => {
             {activeColumn && (
               <ColumnContainter
                 column={activeColumn}
-                tasks={tasks.filter((task) => task.columnId === activeColumn.id)}
+                tasks={tasks.filter(({ columnId }) => columnId === activeColumn.id)}
               />
             )}
             {activeTask && <TaskCard task={activeTask} />}

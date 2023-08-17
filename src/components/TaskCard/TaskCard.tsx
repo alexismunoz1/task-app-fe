@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Task } from "../lib/types";
+import { Task } from "../../lib/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { TrashIcon } from "../icons/TrashIcon";
+import { TrashIcon } from "../../icons/TrashIcon";
+import { SkeletonCard } from "./SkeletonCard";
+import { updateTask } from "../../lib/api";
 
 interface Props {
   task: Task;
@@ -15,10 +17,7 @@ export const TaskCard = ({ task }: Props) => {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } =
     useSortable({
       id: task.id,
-      data: {
-        type: "Task",
-        task,
-      },
+      data: { type: "Task", task },
       disabled: editMode,
     });
 
@@ -33,13 +32,7 @@ export const TaskCard = ({ task }: Props) => {
   };
 
   if (isDragging) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className='opacity-30 bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl border-2 border-rose-500  cursor-grab relative'
-      />
-    );
+    return <SkeletonCard setNodeRef={setNodeRef} style={style} />;
   }
 
   if (editMode) {
@@ -52,17 +45,14 @@ export const TaskCard = ({ task }: Props) => {
         className='bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500 cursor-grab relative'>
         <textarea
           className='h-[90%] w-full resize-none border-none rounded bg-transparent text-white focus:outline-none'
-          value={task.content}
-          readOnly
+          // value={task.content}
           autoFocus
           placeholder='Task content here'
           onBlur={toggleEditMode}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && e.shiftKey) {
-              toggleEditMode();
-            }
+            if (e.key === "Enter" && e.shiftKey) toggleEditMode();
           }}
-          // onChange={(e) => updateTask(task.id, e.target.value)}
+          onChange={(e) => updateTask(task.id, e.target.value)}
         />
       </div>
     );
