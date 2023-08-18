@@ -37,14 +37,17 @@ export const TaskCard = ({ task }: Props) => {
     return <SkeletonCard setNodeRef={setNodeRef} style={style} />;
   }
 
-  if (editMode) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
-        className='bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500 cursor-grab relative'>
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className='bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500 cursor-grab relative'
+      onClick={toggleEditMode}
+      onMouseEnter={() => setMouseIsOver(true)}
+      onMouseLeave={() => setMouseIsOver(false)}>
+      {editMode ? (
         <textarea
           autoFocus
           defaultValue={task.content}
@@ -54,23 +57,11 @@ export const TaskCard = ({ task }: Props) => {
           name='content'
           className='h-[90%] w-full resize-none border-none rounded bg-transparent text-white focus:outline-none'
         />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className='bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500 cursor-grab relative'
-      {...attributes}
-      {...listeners}
-      onClick={toggleEditMode}
-      onMouseEnter={() => setMouseIsOver(true)}
-      onMouseLeave={() => setMouseIsOver(false)}>
-      <p className='my-auto h-[90%] w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap'>
-        {task.content}
-      </p>
+      ) : (
+        <p className='my-auto h-[90%] w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap'>
+          {task.content}
+        </p>
+      )}
       {mouseIsOver && (
         <button
           onClick={() => deleteTask(task.id)}
