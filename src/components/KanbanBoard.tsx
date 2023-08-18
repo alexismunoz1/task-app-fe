@@ -62,20 +62,19 @@ export const KanbanBoard = () => {
   }
 
   async function onDragEnd(event: DragEndEvent) {
-    setActiveTask(null);
-
     const { active, over } = event;
     const activeId = active.id as string;
     const columnsId = event.collisions[1].id as string;
 
-    if (columnsId !== "todo" && columnsId !== "doing" && columnsId !== "done") {
-      return;
+    if (["todo", "doing", "done"].includes(columnsId)) {
+      await updateColumnId(activeId, columnsId);
     }
-    await updateColumnId(activeId, columnsId);
 
     if (!over || activeId === over.id || active.data.current?.type !== "Column") {
       return;
     }
+
+    setActiveTask(null);
   }
 
   function onDragOver(event: DragOverEvent) {
