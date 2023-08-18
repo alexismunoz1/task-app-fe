@@ -1,13 +1,13 @@
-import { TaskCard } from "./TaskCard/TaskCard";
-import { Column, Task } from "../lib/types";
 import { useMemo } from "react";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { PlusIcon } from "../icons/PlusIcon";
-import { addTask } from "../lib/api";
 import { v4 } from "uuid";
+import { PlusIcon } from "../icons/PlusIcon";
+import { TaskCard } from "./TaskCard/TaskCard";
 import { Loader } from "./Loader";
 import { useGetTasks } from "../hooks/getTasks";
+import { useTaskStore } from "../store/taskStore";
+import type { Column, Task } from "../lib/types";
 
 interface Props {
   column: Column;
@@ -16,6 +16,7 @@ interface Props {
 
 export const ColumnContainter = ({ column, tasks }: Props) => {
   const tasksIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
+  const { addNewTask } = useTaskStore();
   const { isLoading } = useGetTasks();
 
   const { setNodeRef, transform, transition } = useSortable({
@@ -46,7 +47,7 @@ export const ColumnContainter = ({ column, tasks }: Props) => {
         </SortableContext>
       </div>
       <button
-        onClick={() => addTask(v4(), column.id, "")}
+        onClick={() => addNewTask(v4(), column.id, "")}
         className='flex mt-1 gap-2 items-center p-3 bg-[#0d1117] border-columnBackgroundColor border-2 rounded-[0_0_5px_5px] border-x-columnBackgroundColor hover:bg-mainBackgroundColor hover:text-rose-500 active:bg-black'>
         <PlusIcon />
         Add task

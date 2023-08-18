@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Column, Task } from "../lib/types";
+import type { Column, Task } from "../lib/types";
 import { ColumnContainter } from "./ColumnContainer";
 import {
   DndContext,
@@ -33,18 +33,15 @@ const defaultCols: Column[] = [
 ];
 
 export const KanbanBoard = () => {
-  const [columns, setColumns] = useState<Column[]>(defaultCols);
-  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-  const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+  const columnsId = useMemo(() => defaultCols.map((col) => col.id), []);
 
   const { data: initialTasks } = useGetTasks();
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  // const { task, setTasks } = useTaskStore();
+  const { tasks, setTasks, updateColumnIdTask } = useTaskStore();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   useEffect(() => {
     setTasks(initialTasks);
-  }, [initialTasks]);
+  }, [initialTasks, setTasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -55,75 +52,65 @@ export const KanbanBoard = () => {
   );
 
   function onDragStart(event: DragStartEvent) {
-    const type = event.active.data.current?.type;
-    const column = event.active.data.current?.column;
-    const task = event.active.data.current?.task;
+    const { type, task } = event.active.data.current;
 
-    if (type === "Column") setActiveColumn(column);
-    if (type === "Task") setActiveTask(task);
-
-    return;
+    if (type === "Task") {
+      setActiveTask(task);
+    }
   }
 
-  function onDragEnd(event: DragEndEvent) {
-    setActiveColumn(null);
+  async function onDragEnd(event: DragEndEvent) {
     setActiveTask(null);
 
-    const { active, over } = event;
-    const activeId = active.id;
-    if (!over) return;
+    const { active, over, collisions } = event;
+    const activeId = active.id as string;
 
-    const overId = over.id;
-    if (activeId === overId) return;
+    await updateColumnIdTask(activeId, `${collisions[1].id}`);
 
-    const isActiveColumn = active.data.current?.type === "Column";
-    if (!isActiveColumn) return;
-
-    setColumns((columns) => {
-      const activeColumnIndex = columns.findIndex((column) => column.id === activeId);
-      const overColumnIndex = columns.findIndex((column) => column.id === overId);
-      return arrayMove(columns, activeColumnIndex, overColumnIndex);
-    });
+    if (!over || activeId === over.id || active.data.current?.type !== "Column") {
+      return;
+    }
   }
 
   function onDragOver(event: DragOverEvent) {
     const { active, over } = event;
-    if (!over) return;
 
-    const activeId = active.id;
-    const overId = over.id as string;
-
-    if (activeId === overId) return;
-
-    const isActiveATask = active.data.current?.type === "Task";
-    const isOverATask = over.data.current?.type === "Task";
-
-    if (!isActiveATask) return;
-
-    // Im dropping a Task over another Task
-    if (isActiveATask && isOverATask) {
-      setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        const overIndex = tasks.findIndex((t) => t.id === overId);
-
-        if (tasks[activeIndex].columnId != tasks[overIndex].columnId) {
-          tasks[activeIndex].columnId = tasks[overIndex].columnId;
-          return arrayMove(tasks, activeIndex, overIndex - 1);
-        }
-
-        return arrayMove(tasks, activeIndex, overIndex);
-      });
+    if (!over) {
+      return;
     }
 
-    const isOverAColumn = over.data.current?.type === "Column";
+    const activeId = active.id;
+    const overId = `${over.id}`;
 
-    // Im dropping a Task over a column
-    if (isActiveATask && isOverAColumn) {
-      setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        tasks[activeIndex].columnId = overId;
-        return arrayMove(tasks, activeIndex, activeIndex);
-      });
+    if (activeId === overId) {
+      return;
+    }
+
+    const isActiveTask = active.data.current?.type === "Task";
+    const isOverTask = over.data.current?.type === "Task";
+
+    if (!isActiveTask) {
+      return;
+    }
+
+    if (isActiveTask && isOverTask) {
+      const activeIndex = tasks.findIndex((task) => task.id === activeId);
+      const overIndex = tasks.findIndex((task) => task.id === overId);
+
+      if (tasks[activeIndex].columnId !== tasks[overIndex].columnId) {
+        tasks[activeIndex].columnId = tasks[overIndex].columnId;
+        setTasks(arrayMove<Task>(tasks, activeIndex, overIndex - 1));
+      }
+
+      setTasks(arrayMove<Task>(tasks, activeIndex, overIndex));
+    }
+
+    const isOverColumn = over.data.current?.type === "Column";
+
+    if (isActiveTask && isOverColumn) {
+      const activeIndex = tasks.findIndex((task) => task.id === activeId);
+      tasks[activeIndex].columnId = overId;
+      setTasks(arrayMove<Task>(tasks, activeIndex, activeIndex));
     }
   }
 
@@ -149,15 +136,7 @@ export const KanbanBoard = () => {
         </div>
 
         {createPortal(
-          <DragOverlay>
-            {activeColumn && (
-              <ColumnContainter
-                column={activeColumn}
-                tasks={tasks.filter(({ columnId }) => columnId === activeColumn.id)}
-              />
-            )}
-            {activeTask && <TaskCard task={activeTask} />}
-          </DragOverlay>,
+          <DragOverlay>{activeTask && <TaskCard task={activeTask} />}</DragOverlay>,
           document.body
         )}
       </DndContext>

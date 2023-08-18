@@ -2,16 +2,16 @@ import axios from "axios";
 import { Task } from "./types";
 
 export const taskAppApi = axios.create({
-  baseURL: "https://task-app-six-liart.vercel.app/api",
+  baseURL: "https://parcel-api.onrender.com/api",
 });
 
 export const getTasks = async (): Promise<Task[]> => {
-  const { data } = await taskAppApi.get("/task/getTask");
+  const { data } = await taskAppApi.get("/task");
   return data;
 };
 
-export const addTask = async (taskId: string, columnId: string, content: string) => {
-  const res = await taskAppApi.post("/task/addTask", {
+export const addTaskApi = async (taskId: string, columnId: string, content: string) => {
+  const res = await taskAppApi.post("/task", {
     taskId,
     columnId,
     content,
@@ -19,10 +19,19 @@ export const addTask = async (taskId: string, columnId: string, content: string)
   return res.data;
 };
 
-export const updateTask = async (taskId: string, content: string) => {
-  const res = await taskAppApi.post("/task/updateTask", {
-    taskId,
+export const updateTaskApi = async (
+  taskId: string,
+  columnId?: string,
+  content?: string
+) => {
+  const res = await taskAppApi.patch(`/task/${taskId}`, {
+    columnId,
     content,
   });
+  return res.data;
+};
+
+export const deleteTaskApi = async (taskId: string) => {
+  const res = await taskAppApi.delete(`/task/${taskId}`);
   return res.data;
 };
