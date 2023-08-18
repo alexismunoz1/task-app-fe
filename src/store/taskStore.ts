@@ -6,8 +6,8 @@ interface TaskStore {
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
   addNewTask: (taskId: string, columnId: string, content: string) => void;
-  updateContentTask: (taskId: string, content: string) => void;
-  updateColumnIdTask: (taskId: string, columnId: string) => void;
+  updateContentTask: (taskId: string, columnId: string, content: string) => void;
+  updateColumnId: (taskId: string, columnId: string) => void;
   deleteTask: (taskId: string) => void;
 }
 
@@ -22,17 +22,17 @@ export const useTaskStore = create<TaskStore>((set) => ({
     await addTaskApi(taskId, columnId, content);
   },
 
-  updateContentTask: async (taskId, content) => {
+  updateContentTask: async (taskId, columnId, content) => {
     set((state) => ({
       tasks: state.tasks.map((task) =>
-        task.id === taskId ? { ...task, content } : task
+        task.id === taskId ? { ...task, columnId, content } : task
       ),
     }));
 
-    await updateTaskApi(taskId, content);
+    await updateTaskApi(taskId, columnId, content);
   },
 
-  updateColumnIdTask: async (taskId, columnId) => {
+  updateColumnId: async (taskId, columnId) => {
     set((state) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId ? { ...task, columnId } : task

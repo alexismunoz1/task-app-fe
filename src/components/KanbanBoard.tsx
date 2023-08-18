@@ -35,13 +35,15 @@ const defaultCols: Column[] = [
 export const KanbanBoard = () => {
   const columnsId = useMemo(() => defaultCols.map((col) => col.id), []);
 
-  const { data: initialTasks } = useGetTasks();
-  const { tasks, setTasks, updateColumnIdTask } = useTaskStore();
+  const { data: initialTasks, isLoading } = useGetTasks();
+  const { tasks, setTasks, updateColumnId } = useTaskStore();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   useEffect(() => {
-    setTasks(initialTasks);
-  }, [initialTasks, setTasks]);
+    if (!isLoading) {
+      setTasks(initialTasks);
+    }
+  }, [initialTasks, isLoading, setTasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -62,10 +64,14 @@ export const KanbanBoard = () => {
   async function onDragEnd(event: DragEndEvent) {
     setActiveTask(null);
 
-    const { active, over, collisions } = event;
+    const { active, over } = event;
     const activeId = active.id as string;
+    const columnsId = event.collisions[1].id as string;
 
-    await updateColumnIdTask(activeId, `${collisions[1].id}`);
+    if (columnsId !== "todo" && columnsId !== "doing" && columnsId !== "done") {
+      return;
+    }
+    await updateColumnId(activeId, columnsId);
 
     if (!over || activeId === over.id || active.data.current?.type !== "Column") {
       return;
@@ -124,13 +130,7 @@ export const KanbanBoard = () => {
         <div className='flex gap-6'>
           <SortableContext items={columnsId}>
             {defaultCols.map((column) => (
-              <ColumnContainter
-                key={column.id}
-                column={column}
-                tasks={
-                  tasks ? tasks.filter(({ columnId }) => columnId === column.id) : []
-                }
-              />
+              <ColumnContainter key={column.id} column={column} />
             ))}
           </SortableContext>
         </div>

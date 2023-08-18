@@ -29,7 +29,7 @@ export const TaskCard = ({ task }: Props) => {
   };
 
   const toggleEditMode = () => {
-    setEditMode((prev) => !prev);
+    setEditMode((prevEditMode) => !prevEditMode);
     setMouseIsOver(false);
   };
 
@@ -50,7 +50,8 @@ export const TaskCard = ({ task }: Props) => {
           defaultValue={task.content}
           placeholder='Task content here'
           onBlur={toggleEditMode}
-          onChange={(e) => updateContentTask(task.id, e.target.value)}
+          onChange={(e) => updateContentTask(task.id, task.columnId, e.target.value)}
+          name='content'
           className='h-[90%] w-full resize-none border-none rounded bg-transparent text-white focus:outline-none'
         />
       </div>
@@ -61,7 +62,7 @@ export const TaskCard = ({ task }: Props) => {
     <div
       ref={setNodeRef}
       style={style}
-      className='bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500 cursor-grab relative task'
+      className='bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500 cursor-grab relative'
       {...attributes}
       {...listeners}
       onClick={toggleEditMode}

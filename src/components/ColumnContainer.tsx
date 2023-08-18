@@ -7,17 +7,22 @@ import { TaskCard } from "./TaskCard/TaskCard";
 import { Loader } from "./Loader";
 import { useGetTasks } from "../hooks/getTasks";
 import { useTaskStore } from "../store/taskStore";
-import type { Column, Task } from "../lib/types";
+import type { Column } from "../lib/types";
 
 interface Props {
   column: Column;
-  tasks: Task[];
 }
 
-export const ColumnContainter = ({ column, tasks }: Props) => {
-  const tasksIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
-  const { addNewTask } = useTaskStore();
+export const ColumnContainter = ({ column }: Props) => {
   const { isLoading } = useGetTasks();
+  const { tasks, addNewTask } = useTaskStore();
+
+  const tasksIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
+
+  const showTasks = useMemo(
+    () => tasks.filter((task) => task.columnId === column.id),
+    [tasks, column.id]
+  );
 
   const { setNodeRef, transform, transition } = useSortable({
     id: column.id,
@@ -38,13 +43,15 @@ export const ColumnContainter = ({ column, tasks }: Props) => {
         <p>{column.title}</p>
       </div>
       <div className='flex overflow-y-auto overflow-x-hidden flex-col grow gap-4 p-2'>
-        <SortableContext items={tasksIds}>
-          {!isLoading ? (
-            tasks.map((task) => <TaskCard key={task.id} task={task} />)
-          ) : (
-            <Loader />
-          )}
-        </SortableContext>
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <SortableContext items={tasksIds}>
+            {showTasks.map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))}
+          </SortableContext>
+        )}
       </div>
       <button
         onClick={() => addNewTask(v4(), column.id, "")}
